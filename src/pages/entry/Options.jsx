@@ -12,13 +12,18 @@ export default function Options({ optionType }) {
   const [items, setItems] = useState([]);
   const [error, setError] = useState(false);
   const { totals } = useOrderDetails();
-  //test
   // optionType is 'scoops' or 'toppings
   useEffect(() => {
+    const controller = new AbortController();
     axios
-      .get(`http://localhost:3030/${optionType}`)
+      .get(`http://localhost:3030/${optionType}`, { signal: controller.signal })
       .then((response) => setItems(response.data))
-      .catch((error) => setError(true));
+      .catch((error) => {
+        if (error.name !== "CanceledError") setError(true);
+      });
+    return () => {
+      controller.abort();
+    };
   }, [optionType]);
 
   if (error) {
